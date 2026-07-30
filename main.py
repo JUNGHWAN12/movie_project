@@ -265,11 +265,37 @@ def style_table_rows(row: pd.Series, selected_movie: str | None, theme_name: str
     if selected_movie and str(row["영화명"]).startswith(selected_movie):
         base_color = f"background-color: {theme['highlight']}; border-left: 4px solid {theme['accent']};"
 
-    rank_digits = "".join(ch for ch in str(row.get("순위 증감", "")) if ch.isdigit())
-    if rank_digits and int(rank_digits) >= 3:
-        base_color += "font-weight: 700;"
+    styles = [base_color] * len(row)
 
-    return [base_color] * len(row)
+    rank_change = str(row.get("순위 증감", ""))
+    rank_digits = "".join(ch for ch in rank_change if ch.isdigit())
+    rank_style = "font-weight: 700;"
+    if rank_change.startswith("🔴"):
+        rank_style = "color: #d32f2f; font-weight: 800;"
+        if rank_digits and int(rank_digits) >= 3:
+            rank_style = "color: #9f1239; font-weight: 900; background-color: rgba(244, 63, 94, 0.10);"
+    elif rank_change.startswith("🔵"):
+        rank_style = "color: #1976d2; font-weight: 800;"
+        if rank_digits and int(rank_digits) >= 3:
+            rank_style = "color: #1d4ed8; font-weight: 900; background-color: rgba(59, 130, 246, 0.10);"
+    elif rank_change == "신규":
+        rank_style = "color: #6b7280; font-weight: 700;"
+
+    audience_change = str(row.get("관객 변화", ""))
+    audience_style = "font-weight: 700;"
+    if audience_change == "신규":
+        audience_style = "color: #6b7280; font-weight: 700;"
+    elif audience_change.startswith("+"):
+        audience_style = "color: #15803d; font-weight: 700;"
+    elif audience_change.startswith("-"):
+        audience_style = "color: #b91c1c; font-weight: 700;"
+
+    if "순위 증감" in row.index:
+        styles[row.index.get_loc("순위 증감")] = rank_style
+    if "관객 변화" in row.index:
+        styles[row.index.get_loc("관객 변화")] = audience_style
+
+    return styles
 
 
 kst_now = datetime.now(ZoneInfo("Asia/Seoul"))
@@ -407,8 +433,6 @@ table_df["관객 변화"] = table_df["관객 변화"].apply(format_signed_count)
 styled_table = (
     table_df.style
     .apply(lambda row: style_table_rows(row, selected_movie, theme_name), axis=1)
-    .applymap(style_rank_change_cell, subset=["순위 증감"])
-    .applymap(style_audience_change_cell, subset=["관객 변화"])
     .format({"관객수": "{:,.0f}", "누적관객": "{:,.0f}", "스크린수": "{:,.0f}", "상영횟수": "{:,.0f}"})
 )
 
