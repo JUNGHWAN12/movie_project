@@ -8,7 +8,7 @@ st.set_page_config(page_title="박스오피스 대시보드", layout="wide")
 st.title("🎬 어제의 박스오피스")
 
 # 비밀 금고에서 인증키 꺼내기 (코드에는 키를 적지 않는다)
-KOBIS_KEY = st.secrets["KOBIS_KEY"]
+KOBIS_KEY = st.secrets["kobis_api_key"]
 
 # 한국 시간 기준 어제 날짜를 여덟 자리로 (배포 서버 시계는 외국 기준일 수 있다)
 yesterday = datetime.now(ZoneInfo("Asia/Seoul")) - timedelta(days=1)
